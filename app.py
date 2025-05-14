@@ -2,31 +2,16 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-from io import BytesIO
-import seaborn as sns
 from unidecode import unidecode
-import os
 
 st.set_page_config(page_title="Gerador de Relatórios de Vendas", page_icon="📊", layout="centered")
 
-# === ESTILO PERSONALIZADO ===
+# === ESTILO ===
 st.markdown("""
     <style>
-    .main {
-        background-color: #111827;
-    }
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        background-color: #1f2937;
-        border-radius: 12px;
-        box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
-    }
-    h1, h2, h3, h4, h5, h6 {
-        color: #facc15;
-        font-family: 'Segoe UI', sans-serif;
-    }
+    .main { background-color: #111827; }
+    .block-container { background-color: #1f2937; border-radius: 12px; padding: 2rem; }
+    h1, h2, h3, h4 { color: #facc15; font-family: 'Segoe UI', sans-serif; }
     .stButton button {
         background-color: #10b981;
         color: white;
@@ -35,21 +20,12 @@ st.markdown("""
         padding: 0.6em 1.5em;
         margin-top: 1rem;
     }
-    .stButton button:hover {
-        background-color: #059669;
-    }
-    .stFileUploader label {
-        font-size: 1.1em;
-        color: #d1d5db;
-        margin-bottom: 0.5rem;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-# 📊 <span style='color:white;'>Gerador de Relatórios de Vendas</span> <span style='color:#facc15;'>- Bling</span>
-""", unsafe_allow_html=True)
+st.markdown("## 📊 <span style='color:white;'>Gerador de Relatórios de Vendas</span> <span style='color:#facc15;'>- Bling</span>", unsafe_allow_html=True)
 
+# === Upload dos arquivos ===
 arquivo_bling = st.file_uploader("Selecione o arquivo CSV exportado do Bling", type="csv")
 arquivo_custos = st.file_uploader("Selecione a planilha de Custos Finais (.xls ou .xlsx)", type=["xls", "xlsx"])
 
@@ -61,6 +37,7 @@ if arquivo_bling and arquivo_custos and st.button("📝 Gerar Relatórios"):
     df_bling.columns = df_bling.columns.str.strip()
     df_custo_all.columns = df_custo_all.columns.str.strip()
 
+    # === Mapeamento flexível ===
     mapeamento = {
         'SKU': 'SKU',
         'DATA': 'DATA_VENDA',
@@ -79,40 +56,32 @@ if arquivo_bling and arquivo_custos and st.button("📝 Gerar Relatórios"):
                 df_bling.rename(columns={original: novo_nome}, inplace=True)
                 break
 
-    # === Renomeia automaticamente a coluna NF se necessário ===
-    # === Renomeia automaticamente a coluna NF se necessário ===
-    possiveis_nomes_nf = ['NF', 'NÚMERO', 'NUMERO', 'NÚMERO NF', 'Nº', 'NO', 'N\u00famero', 'N\u00ba']
+    # === Renomeação robusta da coluna NF ===
+    possiveis_nomes_nf = ['NF', 'NÚMERO', 'NUMERO', 'NÚMERO NF', 'Nº', 'NO', 'NÚMERO DA NF']
     col_nf_encontrada = False
-    
     for col in df_bling.columns:
         col_normalizado = unidecode(col).strip().upper()
-        if any(unidecode(possivel).upper() in col_normalizado for possivel in possiveis_nomes_nf):
+        if any(unidecode(poss).upper() in col_normalizado for poss in possiveis_nomes_nf):
             df_bling.rename(columns={col: 'NF'}, inplace=True)
             col_nf_encontrada = True
             break
-    
-    if not col_nf_encontrada or 'NF' not in df_bling.columns:
-        st.error(\"❌ Coluna 'NF' (número da nota fiscal) não encontrada. Verifique o cabeçalho da planilha Bling.\")
-        st.stop()
-
-
     if not col_nf_encontrada or 'NF' not in df_bling.columns:
         st.error("❌ Coluna 'NF' (número da nota fiscal) não encontrada. Verifique o cabeçalho da planilha Bling.")
         st.stop()
 
-    for original in df_custo_all.columns:
-        col_simplificada = unidecode(original.upper()).strip()
-        if 'SKU' in col_simplificada or 'CODIGO' in col_simplificada:
-            df_custo_all.rename(columns={original: 'SKU'}, inplace=True)
-        elif 'CUSTO' in col_simplificada:
-            df_custo_all.rename(columns={original: 'CUSTO'}, inplace=True)
+    # === Renomeia custo ===
+    for col in df_custo_all.columns:
+        nome = unidecode(col.upper().strip())
+        if 'SKU' in nome or 'CODIGO' in nome:
+            df_custo_all.rename(columns={col: 'SKU'}, inplace=True)
+        elif 'CUSTO' in nome:
+            df_custo_all.rename(columns={col: 'CUSTO'}, inplace=True)
 
     if 'SKU' not in df_custo_all.columns:
-        st.error("❌ Não foi possível localizar a coluna de SKU na planilha de custos. Verifique se o cabeçalho está correto.")
+        st.error("❌ Coluna 'SKU' não encontrada na planilha de custos.")
         st.stop()
 
-    df_custo_all['SKU'] = df_custo_all['SKU'].astype(str).str.strip().str.upper()
-
+    # === Limpeza e tipos ===
     df_bling['PRECO_UNIT'] = df_bling['PRECO_UNIT'].str.replace('R$', '', regex=False).str.replace(',', '.').astype(float)
     df_bling['COMISSAO'] = df_bling['COMISSAO'].str.replace('R$', '', regex=False).str.replace(',', '.').astype(float)
     df_bling['FRETE'] = df_bling['FRETE'].str.replace('R$', '', regex=False).str.replace(',', '.').astype(float)
@@ -120,10 +89,12 @@ if arquivo_bling and arquivo_custos and st.button("📝 Gerar Relatórios"):
     df_bling['SKU'] = df_bling['SKU'].astype(str).str.strip().str.upper()
     df_bling['NF'] = df_bling['NF'].astype(str).str.strip()
 
+    df_custo_all['SKU'] = df_custo_all['SKU'].astype(str).str.strip().str.upper()
     df_custo_all['CUSTO'] = df_custo_all['CUSTO'].astype(str).str.replace('R$', '', regex=False).str.replace(',', '.').astype(float)
 
     df_bling['TOTAL_ITEM'] = df_bling['PRECO_UNIT'] * df_bling['QUANTIDADE']
 
+    # === Agrupamento NF + SKU (remove duplicados) ===
     df_agrupado = df_bling.groupby(['NF', 'SKU'], as_index=False).agg({
         'DATA_VENDA': 'first',
         'DESC_PRODUTO': 'first',
@@ -154,21 +125,12 @@ if arquivo_bling and arquivo_custos and st.button("📝 Gerar Relatórios"):
     df['LUCRO'] = df['VALOR_RECEBIDO'] - df['CUSTO_TOTAL'] - df['IMPOSTO']
 
     st.success("✅ Relatório processado com sucesso!")
-    st.write(df)
+    st.dataframe(df)
 
-    lucro_total = df['LUCRO'].sum()
-    total_produtos = df['QUANTIDADE'].sum()
-
-    st.markdown(f"### 💰 Lucro Total: R$ {lucro_total:.2f}")
-    st.markdown(f"### 📦 Total de Produtos Vendidos: {int(total_produtos)}")
+    st.metric("💰 Lucro Total", f"R$ {df['LUCRO'].sum():,.2f}")
+    st.metric("📦 Total de Produtos", int(df['QUANTIDADE'].sum()))
 
     fig, ax = plt.subplots()
-    top_lucro = df.groupby('SKU')['LUCRO'].sum().nlargest(5)
-    top_lucro.plot(kind='barh', ax=ax, color='#10b981')
+    df.groupby('SKU')['LUCRO'].sum().nlargest(5).plot(kind='barh', ax=ax, color='#10b981')
     ax.set_title("Top 5 SKUs por Lucro")
     st.pyplot(fig)
-
-    fig2, ax2 = plt.subplots()
-    df.groupby('NF')['VALOR_RECEBIDO'].sum().plot(kind='line', marker='o', ax=ax2, color='#facc15')
-    ax2.set_title("Recebimento por Nota Fiscal")
-    st.pyplot(fig2)
