@@ -80,13 +80,21 @@ if arquivo_bling and arquivo_custos and st.button("📝 Gerar Relatórios"):
                 break
 
     # === Renomeia automaticamente a coluna NF se necessário ===
+    # === Renomeia automaticamente a coluna NF se necessário ===
+    possiveis_nomes_nf = ['NF', 'NÚMERO', 'NUMERO', 'NÚMERO NF', 'Nº', 'NO', 'N\u00famero', 'N\u00ba']
     col_nf_encontrada = False
+    
     for col in df_bling.columns:
-        col_nf = unidecode(col.upper().strip())
-        if 'NUMERO' in col_nf or col_nf == 'NF':
+        col_normalizado = unidecode(col).strip().upper()
+        if any(unidecode(possivel).upper() in col_normalizado for possivel in possiveis_nomes_nf):
             df_bling.rename(columns={col: 'NF'}, inplace=True)
             col_nf_encontrada = True
             break
+    
+    if not col_nf_encontrada or 'NF' not in df_bling.columns:
+        st.error(\"❌ Coluna 'NF' (número da nota fiscal) não encontrada. Verifique o cabeçalho da planilha Bling.\")
+        st.stop()
+
 
     if not col_nf_encontrada or 'NF' not in df_bling.columns:
         st.error("❌ Coluna 'NF' (número da nota fiscal) não encontrada. Verifique o cabeçalho da planilha Bling.")
