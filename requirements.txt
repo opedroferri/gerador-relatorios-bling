@@ -4,4 +4,4 @@ matplotlib
 seaborn
 openpyxl
 unidecode
-xlrd
+xlrdxlrd>=2.0.1
