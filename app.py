@@ -79,11 +79,18 @@ if arquivo_bling and arquivo_custos and st.button("📝 Gerar Relatórios"):
                 df_bling.rename(columns={original: novo_nome}, inplace=True)
                 break
 
+    # === Renomeia automaticamente a coluna NF se necessário ===
+    col_nf_encontrada = False
     for col in df_bling.columns:
-        col_clean = unidecode(col.upper().strip())
-        if 'NUMERO' in col_clean:
+        col_nf = unidecode(col.upper().strip())
+        if 'NUMERO' in col_nf or col_nf == 'NF':
             df_bling.rename(columns={col: 'NF'}, inplace=True)
+            col_nf_encontrada = True
             break
+
+    if not col_nf_encontrada or 'NF' not in df_bling.columns:
+        st.error("❌ Coluna 'NF' (número da nota fiscal) não encontrada. Verifique o cabeçalho da planilha Bling.")
+        st.stop()
 
     for original in df_custo_all.columns:
         col_simplificada = unidecode(original.upper()).strip()
@@ -103,22 +110,7 @@ if arquivo_bling and arquivo_custos and st.button("📝 Gerar Relatórios"):
     df_bling['FRETE'] = df_bling['FRETE'].str.replace('R$', '', regex=False).str.replace(',', '.').astype(float)
     df_bling['QUANTIDADE'] = df_bling['QUANTIDADE'].str.replace(',', '.').astype(float)
     df_bling['SKU'] = df_bling['SKU'].astype(str).str.strip().str.upper()
-    # === Renomeia automaticamente a coluna NF se necessário ===
-col_nf_encontrada = False
-for col in df_bling.columns:
-    col_nf = unidecode(col.upper().strip())
-    if 'NUMERO' in col_nf or col_nf == 'NF':
-        df_bling.rename(columns={col: 'NF'}, inplace=True)
-        col_nf_encontrada = True
-        break
-
-if not col_nf_encontrada or 'NF' not in df_bling.columns:
-    st.error("❌ Coluna 'NF' (número da nota fiscal) não encontrada. Verifique o cabeçalho da planilha Bling.")
-    st.stop()
-
-# === Padroniza valores ===
-df_bling['NF'] = df_bling['NF'].astype(str).str.strip()
-
+    df_bling['NF'] = df_bling['NF'].astype(str).str.strip()
 
     df_custo_all['CUSTO'] = df_custo_all['CUSTO'].astype(str).str.replace('R$', '', regex=False).str.replace(',', '.').astype(float)
 
