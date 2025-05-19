@@ -125,28 +125,56 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # PDF (resumo simples)
-    buffer_pdf = BytesIO()
-    with PdfPages(buffer_pdf) as pdf:
-        fig, ax = plt.subplots(figsize=(8.5, 11))
-        ax.axis('off')
-        resumo = f"""
-        RELATÓRIO ANALÍTICO DE VENDAS
-        Data do Relatório: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+  buffer_pdf = BytesIO()
+with PdfPages(buffer_pdf) as pdf:
+    # Página 1 - Resumo
+    fig, ax = plt.subplots(figsize=(8.5, 11))
+    ax.axis('off')
+    resumo = f"""
+    RELATÓRIO ANALÍTICO DE VENDAS
+    Data do Relatório: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
 
-        Total de Produtos Vendidos: {int(df_saida['Quantidade'].sum())}
-        Valor Total Recebido: R$ {df_saida['Valor Recebido'].sum():,.2f}
-        Lucro Total: R$ {df_saida['Lucro'].sum():,.2f}
-        Total de Notas Fiscais Emitidas: {df_saida['NF'].nunique()}
-        Produtos distintos vendidos: {df_saida['SKU'].nunique()}
-        """
-        ax.text(0.1, 0.8, resumo, fontsize=12, va='top')
-        pdf.savefig(fig)
-        plt.close()
+    Total de Produtos Vendidos: {int(df_saida['Quantidade'].sum())}
+    Valor Total Recebido: R$ {df_saida['Valor Recebido'].sum():,.2f}
+    Lucro Total: R$ {df_saida['Lucro'].sum():,.2f}
+    Total de Notas Fiscais Emitidas: {df_saida['NF'].nunique()}
+    Produtos distintos vendidos: {df_saida['SKU'].nunique()}
+    """
+    ax.text(0.1, 0.8, resumo, fontsize=12, va='top')
+    pdf.savefig(fig)
+    plt.close()
 
-    st.download_button(
-        label="📥 Baixar PDF Analítico",
-        data=buffer_pdf.getvalue(),
-        file_name="RELATORIO_ANALITICO.pdf",
-        mime="application/pdf"
-    )
+    # Página 2 - Lucro por SKU
+    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    lucro_por_sku = df_saida.groupby('SKU')['Lucro'].sum().sort_values(ascending=True)
+    lucro_por_sku.plot(kind='barh', ax=ax2, color='#10b981')
+    ax2.set_title('Lucro Total por SKU')
+    ax2.set_xlabel('Lucro (R$)')
+    ax2.set_ylabel('SKU')
+    ax2.grid(True, linestyle='--', alpha=0.7)
+    pdf.savefig(fig2)
+    plt.close()
+
+    # Página 3 - Quantidade por SKU
+    fig3, ax3 = plt.subplots(figsize=(10, 6))
+    qtd_por_sku = df_saida.groupby('SKU')['Quantidade'].sum().sort_values(ascending=True)
+    qtd_por_sku.plot(kind='barh', ax=ax3, color='#2ca02c')
+    ax3.set_title('Quantidade Vendida por SKU')
+    ax3.set_xlabel('Unidades')
+    ax3.set_ylabel('SKU')
+    ax3.grid(True, linestyle='--', alpha=0.7)
+    pdf.savefig(fig3)
+    plt.close()
+
+    # Página 4 - Lucro por Data
+    df_saida['Data da Venda'] = pd.to_datetime(df_saida['Data da Venda'], errors='coerce')
+    fig4, ax4 = plt.subplots(figsize=(10, 5))
+    lucro_por_dia = df_saida.groupby('Data da Venda')['Lucro'].sum().sort_index()
+    lucro_por_dia.plot(ax=ax4, marker='o', linestyle='-', color='#d62728')
+    ax4.set_title('Lucro Total por Data de Venda')
+    ax4.set_ylabel('Lucro (R$)')
+    ax4.set_xlabel('Data')
+    ax4.grid(True, linestyle='--', alpha=0.6)
+    ax4.tick_params(axis='x', rotation=45)
+    pdf.savefig(fig4)
+    plt.close()
