@@ -125,7 +125,7 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-  buffer_pdf = BytesIO()
+   buffer_pdf = BytesIO()
     with PdfPages(buffer_pdf) as pdf:
         # Página 1 - Resumo
         fig, ax = plt.subplots(figsize=(8.5, 11))
