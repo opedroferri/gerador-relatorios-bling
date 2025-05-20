@@ -1,4 +1,4 @@
-# Versão 100% fiel adaptada para Streamlit
+# Versão 100% fiel adaptada para Streamlit com gráficos no PDF
 import streamlit as st
 import pandas as pd
 import os
@@ -117,15 +117,10 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
     df_saida = df_saida.drop_duplicates(subset=['NF', 'SKU'], keep='first')
     buffer_excel = BytesIO()
     df_saida.to_excel(buffer_excel, index=False)
+    st.download_button("📥 Baixar Excel de Saída", data=buffer_excel.getvalue(), file_name="RELATORIO_FINAL.xlsx")
 
-    st.download_button(
-        label="📥 Baixar Excel de Saída",
-        data=buffer_excel.getvalue(),
-        file_name="RELATORIO_FINAL.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-   buffer_pdf = BytesIO()
+    # Geração do PDF com gráficos
+    buffer_pdf = BytesIO()
     with PdfPages(buffer_pdf) as pdf:
         # Página 1 - Resumo
         fig, ax = plt.subplots(figsize=(8.5, 11))
@@ -133,7 +128,7 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
         resumo = f"""
         RELATÓRIO ANALÍTICO DE VENDAS
         Data do Relatório: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
-    
+
         Total de Produtos Vendidos: {int(df_saida['Quantidade'].sum())}
         Valor Total Recebido: R$ {df_saida['Valor Recebido'].sum():,.2f}
         Lucro Total: R$ {df_saida['Lucro'].sum():,.2f}
@@ -143,7 +138,7 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
         ax.text(0.1, 0.8, resumo, fontsize=12, va='top')
         pdf.savefig(fig)
         plt.close()
-    
+
         # Página 2 - Lucro por SKU
         fig2, ax2 = plt.subplots(figsize=(10, 6))
         lucro_por_sku = df_saida.groupby('SKU')['Lucro'].sum().sort_values(ascending=True)
@@ -154,7 +149,7 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
         ax2.grid(True, linestyle='--', alpha=0.7)
         pdf.savefig(fig2)
         plt.close()
-    
+
         # Página 3 - Quantidade por SKU
         fig3, ax3 = plt.subplots(figsize=(10, 6))
         qtd_por_sku = df_saida.groupby('SKU')['Quantidade'].sum().sort_values(ascending=True)
@@ -165,7 +160,7 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
         ax3.grid(True, linestyle='--', alpha=0.7)
         pdf.savefig(fig3)
         plt.close()
-    
+
         # Página 4 - Lucro por Data
         df_saida['Data da Venda'] = pd.to_datetime(df_saida['Data da Venda'], errors='coerce')
         fig4, ax4 = plt.subplots(figsize=(10, 5))
@@ -178,3 +173,5 @@ if arquivo_bling and arquivo_custos and st.button("🚀 Gerar Relatório"):
         ax4.tick_params(axis='x', rotation=45)
         pdf.savefig(fig4)
         plt.close()
+
+    st.download_button("📥 Baixar PDF Analítico", data=buffer_pdf.getvalue(), file_name="RELATORIO_ANALITICO.pdf")
