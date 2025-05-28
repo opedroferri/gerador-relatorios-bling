@@ -9,6 +9,18 @@ from io import BytesIO
 from unidecode import unidecode
 
 st.set_page_config(page_title="Gerador de Relatórios Bling", layout="wide")
+from PIL import Image
+
+try:
+    logo = Image.open("logo.jpeg")
+    col1, col2 = st.columns([1, 8])
+    with col1:
+        st.image(logo, width=100)
+    with col2:
+        st.markdown("<h1 style='margin-top: 0;'>Gerador de Relatórios Bling</h1>", unsafe_allow_html=True)
+except FileNotFoundError:
+    st.warning("⚠️ Logo não encontrada no ambiente do Streamlit.")
+
 
 st.title("📊 Gerador de Relatórios Bling by STRATOSPARTNERS")
 
