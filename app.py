@@ -22,7 +22,7 @@ except FileNotFoundError:
     st.warning("⚠️ Logo não encontrada no ambiente do Streamlit.")
 
 
-st.title("📊 Gerador de Relatórios Bling by STRATOSPARTNERS")
+st.title(" Gerador de Relatórios Bling ")
 
 arquivo_bling = st.file_uploader("Selecione o arquivo CSV exportado do Bling", type="csv")
 arquivo_custos = st.file_uploader("Selecione a planilha de Custos Finais (.xls, .xlsx)", type=["xls", "xlsx"])
