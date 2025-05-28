@@ -13,11 +13,15 @@ from PIL import Image
 
 try:
     logo = Image.open("logo.jpeg")
-    col1, col2 = st.columns([1, 8])
+    col1, col2 = st.columns([1, 6])
     with col1:
-        st.image(logo, width=300)
+        st.image(logo, width=140)
     with col2:
-        st.markdown("<h1 style='margin-top: 0;'>STRATOS PARTNERS APP</h1>", unsafe_allow_html=True)
+        st.markdown("""
+            <div style='display: flex; align-items: center; height: 100%;'>
+                <h2 style='color: #00AEEF; margin: 0;'>STRATOS PARTNERS APP</h2>
+            </div>
+        """, unsafe_allow_html=True)
 except FileNotFoundError:
     st.warning("⚠️ Logo não encontrada no ambiente do Streamlit.")
 
