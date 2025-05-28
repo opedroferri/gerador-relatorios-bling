@@ -21,7 +21,7 @@ from unidecode import unidecode
 
 st.set_page_config(page_title="Gerador de Relatórios Bling", layout="wide")
 
-st.title("📊 Gerador de Relatórios Bling com Rateio Inteligente de Frete")
+st.title("📊 Gerador de Relatórios Bling by STRATOSPARTNERS")
 
 arquivo_bling = st.file_uploader("Selecione o arquivo CSV exportado do Bling", type="csv")
 arquivo_custos = st.file_uploader("Selecione a planilha de Custos Finais (.xls, .xlsx)", type=["xls", "xlsx"])
