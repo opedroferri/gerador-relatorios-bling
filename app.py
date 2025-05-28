@@ -1,7 +1,7 @@
 from PIL import Image
 
 # Carrega a imagem da logo
-logo = Image.open("logo.png")
+logo = Image.open("logo.jpeg")
 
 # Exibe no topo da página
 col1, col2 = st.columns([1, 8])
