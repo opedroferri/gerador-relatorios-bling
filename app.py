@@ -1,3 +1,15 @@
+from PIL import Image
+
+# Carrega a imagem da logo
+logo = Image.open("logo.png")
+
+# Exibe no topo da página
+col1, col2 = st.columns([1, 8])
+with col1:
+    st.image(logo, width=100)
+with col2:
+    st.markdown("<h1 style='margin-top: 0;'>Gerador de Relatórios Bling</h1>", unsafe_allow_html=True)
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
