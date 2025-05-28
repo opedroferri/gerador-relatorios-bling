@@ -17,7 +17,7 @@ try:
     with col1:
         st.image(logo, width=100)
     with col2:
-        st.markdown("<h1 style='margin-top: 0;'>Gerador de Relatórios Bling</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='margin-top: 0;'>STRATOS PARTNERS APP</h1>", unsafe_allow_html=True)
 except FileNotFoundError:
     st.warning("⚠️ Logo não encontrada no ambiente do Streamlit.")
 
